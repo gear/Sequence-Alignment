@@ -44,10 +44,10 @@ TARGETS_GPU = cuda_sa cuda_msa
 
 all: $(TARGETS_GPU) $(TARGETS_CPU)
 
-sa: sequence_alignment.cpp utils.cpp
+sa: src/sequence_alignment.cpp src/utils.cpp
 	$(CC) $^ -o $@ $(LD_FLAGS) -Wall
 
-msa: multiple_sequence_alignment.cpp utils.cpp
+msa: src/multiple_sequence_alignment.cpp src/utils.cpp
 	$(CC) $^ -o $@ $(LD_FLAGS) -Wall
 
 clean_cpu:
