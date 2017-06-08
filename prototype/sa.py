@@ -13,16 +13,29 @@ def score(str1, str2, i, j):
     else:
         return MISMATCH
 
-def sequence_alignment(str1, str2, tmp, i=0, j=0, traceback=None):
+def sequence_alignment(str1, str2, tmp, i=0, j=0, tracecache=None):
     if i == 0 or j == 0:
+        tmp[(i,j)] = 0
         return 0
     elif (i,j) in tmp:
         return tmp[(i,j)]
     else:
-        gap1 = sequence_alignment(str1, str2, tmp, i, j-1) + GAP
-        gap2 = sequence_alignment(str1, str2, tmp, i-1, j) + GAP
-        char = sequence_alignment(str1, str2, tmp, i-1, j-1) + score(str1, str2, i, j)
-        tmp[(i,j)] = max(gap1, gap2, char)
+        gap1 = sequence_alignment(str1, str2, tmp, i, j-1, tracecache) + GAP
+        gap2 = sequence_alignment(str1, str2, tmp, i-1, j, tracecache) + GAP
+        char = sequence_alignment(str1, str2, tmp, i-1, j-1, tracecache) + \
+               score(str1, str2, i, j)
+        vals = [char, gap1, gap2]  # Prefer char to gap
+        if tracecache is not None:
+            midx = np.argmax(vals)
+            if 0 == midx:
+                tracecache[(i,j)] = (i-1, j-1)
+            elif 1 == midx:
+                tracecache[(i,j)] = (i, j-1)
+            elif 2 == midx:
+                tracecache[(i,j)] = (i-1, j)
+            else:
+                raise ValueError("Undefined index.")
+        tmp[(i,j)] = max(vals)
         return tmp[(i,j)]
 
 def main():
@@ -30,7 +43,26 @@ def main():
     str1 = args[1]
     str2 = args[2]
     cache = {}
-    print(sequence_alignment(str1, str2, cache, len(str1), len(str2)))
+    trace = {}
+    i = len(str1)
+    j = len(str2)
+    sa_score = sequence_alignment(str1, str2, cache, i, j, trace)
+    print("Sequence Alignment Score: {}".format(sa_score))
+    aligned_str1 = ""
+    aligned_str2 = ""
+    while (i,j) in trace:
+        (ii,jj) = trace[(i,j)]
+        if (ii < i):
+            aligned_str1 += str1[ii]
+        else:
+            aligned_str1 += '-'
+        if (jj < j):
+            aligned_str2 += str2[jj]
+        else:
+            aligned_str2 += '-'
+        (i,j) = (ii,jj)
+    print(aligned_str1[::-1])
+    print(aligned_str2[::-1])
 
 def test():
 
